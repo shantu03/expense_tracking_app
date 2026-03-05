@@ -1,6 +1,7 @@
 package com.auth_gradel.gradle.project.auth;
 
 
+import com.auth_gradel.gradle.project.repository.RoleRepository;
 import com.auth_gradel.gradle.project.repository.UserRepository;
 import com.auth_gradel.gradle.project.service.UserDetailsServiceImpl;
 import lombok.Data;
@@ -32,11 +33,15 @@ public class SecurityConfig {
     @Autowired
     private  UserDetailsServiceImpl userDetailsService;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
+
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository,
                                                  PasswordEncoder passwordEncoder){
 
-        return new UserDetailsServiceImpl(userRepository,passwordEncoder);
+        return new UserDetailsServiceImpl(userRepository,passwordEncoder,roleRepository);
 
     }
 
@@ -45,7 +50,7 @@ public class SecurityConfig {
                                                    JwtAuthFilter jwtAuthFilter) throws Exception
     {
         return http
-                .csrf(AbstractHttpConfigurer::disable).cors(CorsConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth->auth
                         .requestMatchers("/auth/v1/login",
                                 "/auth/v1/refreshToken",
@@ -54,7 +59,6 @@ public class SecurityConfig {
                         .authenticated()
                 )
                 .sessionManagement(sess-> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(Customizer.withDefaults())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .build();
