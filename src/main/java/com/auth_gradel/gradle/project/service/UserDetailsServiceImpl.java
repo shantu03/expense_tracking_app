@@ -1,9 +1,10 @@
 package com.auth_gradel.gradle.project.service;
 
 import com.auth_gradel.gradle.project.entity.UserInfo;
+import com.auth_gradel.gradle.project.entity.UserRoles;
 import com.auth_gradel.gradle.project.model.UserInfoDto;
+import com.auth_gradel.gradle.project.repository.RoleRepository;
 import com.auth_gradel.gradle.project.repository.UserRepository;
-import io.jsonwebtoken.security.Password;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -27,6 +29,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private final PasswordEncoder passwordEncoder;
+
+
+    @Autowired
+    private final RoleRepository roleRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -55,9 +61,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         {
             return false;
         }
+
         String userId= UUID.randomUUID().toString();
+        UserRoles role=roleRepository.findByRoleName("ROLE_USER").orElseThrow(
+                ()-> new RuntimeException("role not found"));
+
+        Set<UserRoles> roles =new HashSet<>();
+        roles.add(role);
+
         userRepository.save(new UserInfo(userId,userInfoDto.getUsername(),
-                userInfoDto.getPassword(),new HashSet<>()));
+                userInfoDto.getPassword(),roles));
 
         return true;
     }

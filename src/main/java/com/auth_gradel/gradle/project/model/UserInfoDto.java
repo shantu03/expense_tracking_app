@@ -13,6 +13,9 @@ public class UserInfoDto extends UserInfo {
     private String userName;
     private String lastName;
     private String email;
+
     private Long phoneNumber;
+
+
 
 }
